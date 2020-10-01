@@ -7,7 +7,19 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.pc = 0
+        self.reg = [0] * 8
+        self.ram = [0] * 256
+
+    # writing
+    def ram_read(self, mar):
+        """accept the address to read and return the value stored there"""
+        return self.ram[mar]
+    # MDR: Memory Data Register, holds the value to write or the value just read
+    def ram_write(self, mdr, value):
+        """accept a value to write, and the address to write it to"""
+        self.ram[mdr] = value
+        return self.ram[mdr]
 
     def load(self):
         """Load a program into memory."""
@@ -18,24 +30,31 @@ class CPU:
 
         program = [
             # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
+            0b10000010, # LDI R0, 8  130
+            0b00000000, # 0
+            0b00001000, # 8
+            0b01000111, # PRN R0 71
+            0b00000000, # 0
+            0b00000001, # HLT #1
         ]
 
         for instruction in program:
             self.ram[address] = instruction
+            print(f'self.ram[address]:{self.ram[address]} = instruction: {instruction}')
             address += 1
 
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
-        if op == "ADD":
+        if op == "ADD": # 160
+            print(reg_a, reg_b)
+            print(self.reg)
+            # indexes
             self.reg[reg_a] += self.reg[reg_b]
+            return self.reg[reg_a]
+            
+
         #elif op == "SUB": etc
         else:
             raise Exception("Unsupported ALU operation")
@@ -62,4 +81,37 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        # Instruction Register, contains a copy of the currently executing instruction
+        # if at 160
+
+        LDI = 130
+        HLT = 1
+        PRN = 71
+        ADD = 160
+
+        running = True
+        while running:
+
+            IR = self.ram_read(self.pc)
+            print(IR)
+            if IR == LDI:
+                print("in here")
+                self.reg[self.pc] = LDI
+            if ADD != IR:
+                print('in add', ADD)
+                op = 'ADD'
+
+                operand_a = self.ram_read(self.pc + 1)
+                operand_b = self.ram_read(self.pc + 2)
+                operand_sum = self.alu(op, operand_a, operand_b)
+                print('operand sum, ',operand_sum)
+                self.pc += 3
+            elif IR == HLT:
+                running = False
+                sys.exit(1)
+            elif IR == PRN:
+                print('printing out value')
+                print(self.reg[self.pc])
+                self.pc += 1
+            self.pc += 1
+            print(self.reg)
