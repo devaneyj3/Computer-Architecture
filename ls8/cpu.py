@@ -10,16 +10,17 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.reg[7] = 0xf4
+        self.halted = False
 
     # writing
-    def ram_read(self, mar):
+    def ram_read(self, address):
         """accept the address to read and return the value stored there"""
-        return self.ram[mar]
-    # MDR: Memory Data Register, holds the value to write or the value just read
-    def ram_write(self, mdr, value):
+        return self.ram[address]
+
+    def ram_write(self, address, value):
         """accept a value to write, and the address to write it to"""
-        self.ram[mdr] = value
-        return self.ram[mdr]
+        self.ram[address] = value
 
     def load(self):
         """Load a program into memory."""
@@ -87,31 +88,20 @@ class CPU:
         LDI = 130
         HLT = 1
         PRN = 71
-        ADD = 160
 
-        running = True
-        while running:
+        while not self.halted:
 
             IR = self.ram_read(self.pc)
-            print(IR)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
             if IR == LDI:
                 print("in here")
-                self.reg[self.pc] = LDI
-            if ADD != IR:
-                print('in add', ADD)
-                op = 'ADD'
-
-                operand_a = self.ram_read(self.pc + 1)
-                operand_b = self.ram_read(self.pc + 2)
-                operand_sum = self.alu(op, operand_a, operand_b)
-                print('operand sum, ',operand_sum)
+                self.reg[operand_a] = operand_b
                 self.pc += 3
             elif IR == HLT:
-                running = False
+                self.halted = True
                 sys.exit(1)
             elif IR == PRN:
-                print('printing out value')
-                print(self.reg[self.pc])
-                self.pc += 1
-            self.pc += 1
-            print(self.reg)
+                print(self.reg[operand_a])
+                self.pc += 2
