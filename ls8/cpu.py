@@ -27,22 +27,24 @@ class CPU:
 
         address = 0
 
+        if len(sys.argv) != 2:
+            print('You must have two arguments')
+            sys.exit(1)
         # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0, 8  130
-            0b00000000, # 0
-            0b00001000, # 8
-            0b01000111, # PRN R0 71
-            0b00000000, # 0
-            0b00000001, # HLT #1
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            print(f'self.ram[address]:{self.ram[address]} = instruction: {instruction}')
-            address += 1
+        try:
+            with open(sys.argv[1], 'r') as file:
+                for line in file:
+                    array_split = line.split('#')
+                    nums = array_split[0]
+                    try:
+                        num = int(nums, 2)
+                        self.ram[address] = num
+                        address += 1 
+                    except:
+                        continue
+        except:
+            print("File not found")
+            sys.exit(1)
 
 
     def alu(self, op, reg_a, reg_b):
