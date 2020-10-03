@@ -13,7 +13,7 @@ class CPU:
         self.reg[7] = 0xf4
         self.halted = False
 
-    # writing
+
     def ram_read(self, address):
         """accept the address to read and return the value stored there"""
         return self.ram[address]
@@ -30,7 +30,6 @@ class CPU:
         if len(sys.argv) != 2:
             print('You must have two arguments')
             sys.exit(1)
-        # For now, we've just hardcoded a program:
         try:
             with open(sys.argv[1], 'r') as file:
                 for line in file:
@@ -48,14 +47,14 @@ class CPU:
 
 
     def alu(self, op, reg_a, reg_b):
-        """ALU operations."""
+        """ALU operations.""" 
 
         if op == "ADD": # 160
-            print(reg_a, reg_b)
-            print(self.reg)
-            # indexes
             self.reg[reg_a] += self.reg[reg_b]
             return self.reg[reg_a]
+        elif op == 162:
+            self.reg[reg_a] *= self.reg[reg_b]
+            print(self.reg[reg_a])
             
 
         #elif op == "SUB": etc
@@ -90,6 +89,7 @@ class CPU:
         LDI = 130
         HLT = 1
         PRN = 71
+        MULT = 162
 
         while not self.halted:
 
@@ -98,12 +98,13 @@ class CPU:
             operand_b = self.ram_read(self.pc + 2)
 
             if IR == LDI:
-                print("in here")
                 self.reg[operand_a] = operand_b
                 self.pc += 3
             elif IR == HLT:
                 self.halted = True
                 sys.exit(1)
             elif IR == PRN:
-                print(self.reg[operand_a])
                 self.pc += 2
+            elif IR == MULT:
+                self.alu(IR,operand_a,operand_b)
+                self.pc += 3
