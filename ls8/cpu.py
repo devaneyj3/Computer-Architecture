@@ -13,6 +13,10 @@ class CPU:
         self.reg[7] = 0xf4
         self.halted = False
 
+    def stackMemory(self):
+        stackSpace = len(self.ram)
+        self.ram += [0] * stackSpace
+        return self.ram
 
     def ram_read(self, address):
         """accept the address to read and return the value stored there"""
@@ -32,12 +36,15 @@ class CPU:
             sys.exit(1)
         try:
             with open(sys.argv[1], 'r') as file:
+                # print('in load')
                 for line in file:
+                    # print(line) 
                     array_split = line.split('#')
                     nums = array_split[0]
                     try:
                         num = int(nums, 2)
                         self.ram[address] = num
+                        # print(self.ram[address])
                         address += 1 
                     except:
                         continue
@@ -54,7 +61,6 @@ class CPU:
             return self.reg[reg_a]
         elif op == 162:
             self.reg[reg_a] *= self.reg[reg_b]
-            print(self.reg[reg_a])
             
 
         #elif op == "SUB": etc
@@ -90,6 +96,12 @@ class CPU:
         HLT = 1
         PRN = 71
         MULT = 162
+        PUSH = 69
+        POP = 70
+
+        memory = self.stackMemory() # create memory for a stack
+        SP = 7
+        self.reg[SP] = len(memory) - 1
 
         while not self.halted:
 
@@ -104,6 +116,19 @@ class CPU:
                 self.halted = True
                 sys.exit(1)
             elif IR == PRN:
+                print(self.reg[operand_a])
+                self.pc += 2
+            elif IR == PUSH:
+                self.reg[SP] -= 1
+                registerValue = self.ram[self.pc + 1]
+                valueInRegister = self.reg[registerValue]
+                self.ram[self.reg[SP]] = valueInRegister
+                self.pc += 2
+            elif IR == POP:
+                topValueInStack = self.ram[self.reg[SP]]
+                registerToStoreItIn = self.ram[self.pc + 1] 
+                self.reg[registerToStoreItIn] = topValueInStack
+                self.reg[SP] += 1
                 self.pc += 2
             elif IR == MULT:
                 self.alu(IR,operand_a,operand_b)
