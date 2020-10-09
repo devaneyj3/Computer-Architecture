@@ -57,6 +57,7 @@ class CPU:
         """ALU operations.""" 
 
         if op == "ADD": # 160
+            # print(self.reg[reg_a])
             self.reg[reg_a] += self.reg[reg_b]
             return self.reg[reg_a]
         elif op == 162:
@@ -98,6 +99,9 @@ class CPU:
         MULT = 162
         PUSH = 69
         POP = 70
+        CALL = 80
+        RET = 17
+        ADD = 160
 
         memory = self.stackMemory() # create memory for a stack
         SP = 7
@@ -111,6 +115,8 @@ class CPU:
 
             if IR == LDI:
                 self.reg[operand_a] = operand_b
+                # print(f'seting self.reg[{operand_a}] to {operand_b}')
+                # print('the register values are, ', self.reg)
                 self.pc += 3
             elif IR == HLT:
                 self.halted = True
@@ -132,4 +138,25 @@ class CPU:
                 self.pc += 2
             elif IR == MULT:
                 self.alu(IR,operand_a,operand_b)
+                self.pc += 3
+            elif IR == CALL:
+                ret_addr = self.pc + 2
+                self.reg[SP] -= 1
+                self.ram[self.reg[SP]] = ret_addr
+
+                addrToGet = self.ram[self.pc + 1]
+                # print(f'Calling reg[{addrToGet}]')
+                self.pc = self.reg[addrToGet]
+                # print(f'PC is at ', self.pc)
+
+            elif IR == RET:
+                # print('In Ret')
+                ret_addr = self.ram[self.reg[SP]]
+                self.reg[SP] += 1
+
+                self.pc = ret_addr
+
+            elif IR == ADD:
+                op = 'ADD'
+                self.alu(op, 0, 0)
                 self.pc += 3
